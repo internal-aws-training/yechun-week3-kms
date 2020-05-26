@@ -1,0 +1,25 @@
+# Use aws-cli to create a key.
+aws kms create-key --description "KMS Demo Aplication" --region "ap-southeast-1"
+aws kms create-alias --alias-name alias/syc-cli-kms --target-key-id 2e2db3da-82d6-4687-ae85-3e8400d2d921 --region "ap-southeast-1"
+
+# Use aws-cli to encrypt data with the key you just created.
+aws kms encrypt \
+  --key-id 2e2db3da-82d6-4687-ae85-3e8400d2d921 \
+  --region "ap-southeast-1" \
+  --plaintext file://secrets.json \
+  --output text \
+  --query CiphertextBlob | base64 --decode > secrets.encrypted.json
+
+# Use aws-cli to decrypt data with the key you just created.
+aws kms decrypt \
+    --ciphertext-blob fileb://secrets.encrypted.json \
+    --output text \
+    --region "ap-southeast-1" \
+    --query Plaintext | base64 --decode > outPlainText
+
+# Use open source tool shush to do the above action.
+AWS_DEFAULT_REGION=ap-southeast-1 shush encrypt 2e2db3da-82d6-4687-ae85-3e8400d2d921 < secrets.json > secret.encrypted
+AWS_DEFAULT_REGION=ap-southeast-1 shush decrypt < secret.encrypted > secrets-shush.json
+
+shush --region ap-southeast-1 encrypt 2e2db3da-82d6-4687-ae85-3e8400d2d921 < secrets.json > secret.encrypted
+shush --region ap-southeast-1 decrypt < secret.encrypted > secrets-shush.json
